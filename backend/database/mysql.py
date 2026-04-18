@@ -16,12 +16,14 @@ MYSQL_PASSWORD = os.getenv("MYSQL_PASSWORD", "password")
 encoded_user = quote_plus(MYSQL_USER)
 encoded_password = quote_plus(MYSQL_PASSWORD)
 
+# ensure connection uses UTF-8 (utf8mb4) so accented characters are preserved
 connection_url = (
-    f"mysql+pymysql://{encoded_user}:{encoded_password}@{MYSQL_HOST}:{MYSQL_PORT}/{MYSQL_DATABASE}"
+    f"mysql+pymysql://{encoded_user}:{encoded_password}@{MYSQL_HOST}:{MYSQL_PORT}/{MYSQL_DATABASE}?charset=utf8mb4"
 )
 
 engine = create_engine(
     connection_url,
     pool_pre_ping=True,
     future=True,
+    connect_args={"charset": "utf8mb4"},
 )

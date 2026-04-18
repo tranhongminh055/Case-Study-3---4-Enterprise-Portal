@@ -1,4 +1,5 @@
 from datetime import date
+from decimal import Decimal
 
 
 def serialize_model(instance):
@@ -8,6 +9,8 @@ def serialize_model(instance):
             continue
         if isinstance(value, date):
             payload[key] = value.isoformat()
+        elif isinstance(value, Decimal):
+            payload[key] = float(value)
         else:
             payload[key] = value
     return payload

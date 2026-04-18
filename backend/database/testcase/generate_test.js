@@ -57,4 +57,4 @@ fs.mkdirSync(path.dirname(outputPath), { recursive: true });
 
 fs.writeFileSync(outputPath, JSON.stringify(testcases, null, 2));
 
-console.log('✅ Generated 200 testcases at:', outputPath);
+console.log(' Generated 200 testcases at:', outputPath);

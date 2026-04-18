@@ -18,9 +18,12 @@ from backend.utils.errors import AppError, InternalError
 
 app = FastAPI(title="Enterprise Integration API")
 
+frontend_origins = os.getenv("FRONTEND_ORIGIN", "http://localhost:5174,http://localhost:5175")
+allow_origins = [origin.strip() for origin in frontend_origins.split(",") if origin.strip()]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[os.getenv("FRONTEND_ORIGIN", "http://localhost:5174")],
+    allow_origins=allow_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

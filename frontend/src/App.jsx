@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import EmployeePage from './pages/EmployeePage';
 import ReportPage from './pages/ReportPage';
 import PayrollPage from './pages/PayrollPage';
@@ -6,11 +6,26 @@ import AlertPanel from './components/AlertPanel';
 
 function App() {
   const [activeTab, setActiveTab] = useState('employees');
+  const [selectedEmployeeId, setSelectedEmployeeId] = useState(null);
+
+  // allow other components to request navigation via CustomEvent
+  useEffect(() => {
+    function onNavigate(e) {
+      const { tab, employeeId } = e.detail || {};
+      if (tab) setActiveTab(tab);
+      if (typeof employeeId !== 'undefined') setSelectedEmployeeId(employeeId);
+    }
+    window.addEventListener('navigate', onNavigate);
+    return () => window.removeEventListener('navigate', onNavigate);
+  }, []);
 
   return (
     <div className="app-shell">
       <header className="app-header">
-        <h1>Enterprise Integration Portal</h1>
+        <div>
+          <h1>Enterprise Integration Portal</h1>
+          <span className="brand-sub">HR • Payroll • Reporting</span>
+        </div>
         <nav>
           <button onClick={() => setActiveTab('employees')} className={activeTab === 'employees' ? 'active' : ''}>
             Employees
@@ -28,7 +43,7 @@ function App() {
         <AlertPanel />
         {activeTab === 'employees' && <EmployeePage />}
         {activeTab === 'reports' && <ReportPage />}
-        {activeTab === 'payroll' && <PayrollPage />}
+        {activeTab === 'payroll' && <PayrollPage selectedEmployeeId={selectedEmployeeId} />}
       </main>
     </div>
   );

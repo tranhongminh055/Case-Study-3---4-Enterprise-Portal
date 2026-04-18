@@ -11,17 +11,18 @@ def employee_report_data(sql_session, mysql_session):
     }
     attendance_map = {}
     for record in mysql_session.query(Attendance).order_by(Attendance.work_date.desc()).all():
+        status = 'Absent' if getattr(record, 'absent_days', 0) and record.absent_days > 0 else 'Present'
         attendance_map.setdefault(record.employee_id, []).append({
-            "date": record.work_date.isoformat(),
-            "status": record.status,
-            "leave_hours": record.leave_hours,
+            "date": record.work_date.isoformat() if getattr(record, 'work_date', None) else None,
+            "status": status,
+            "leave_hours": getattr(record, 'leave_days', 0),
         })
 
     combined = []
     for employee in employees:
         combined.append({
             "employee_id": employee.id,
-            "name": f"{employee.first_name} {employee.last_name}",
+            "name": getattr(employee, 'full_name', f"{getattr(employee, 'first_name', '')} {getattr(employee, 'last_name', '')}").strip(),
             "email": employee.email,
             "department_id": employee.department_id,
             "position_id": employee.position_id,

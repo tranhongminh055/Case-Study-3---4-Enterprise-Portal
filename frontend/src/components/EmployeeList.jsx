@@ -7,7 +7,7 @@ function EmployeeList({ employees, onEdit, onDelete }) {
     return (
       <tr key={employee.id}>
         <td>{employee.id}</td>
-        <td>{name || 'N/A'}</td>
+        <td className="name-cell">{name || 'N/A'}</td>
         <td>{employee.email}</td>
         <td>{employee.latest_salary && employee.latest_salary.amount ? employee.latest_salary.amount : 'N/A'}</td>
         <td>{employee.status}</td>
