@@ -53,3 +53,13 @@ def update_attendance(att_id, payload: dict):
 def delete_attendance(att_id):
     with SessionMysql() as session:
         return repo.delete_attendance(session, att_id)
+
+
+def get_salary_history_for_employee(employee_id):
+    with SessionMysql() as session:
+        return repo.get_salary_by_employee(session, employee_id)
+
+
+def get_attendance_for_employee(employee_id):
+    with SessionMysql() as session:
+        return repo.get_attendance_by_employee(session, employee_id)

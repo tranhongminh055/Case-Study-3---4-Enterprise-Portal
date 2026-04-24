@@ -3,6 +3,17 @@ import axios from 'axios';
 const baseURL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 const api = axios.create({ baseURL, timeout: 10000 });
 
+// initialize auth header if token present
+const storedToken = localStorage.getItem('auth_token');
+if (storedToken) api.defaults.headers.common['Authorization'] = `Bearer ${storedToken}`;
+
+export const setAuthToken = (token) => {
+	if (token) api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+	else delete api.defaults.headers.common['Authorization'];
+	if (token) localStorage.setItem('auth_token', token);
+	else localStorage.removeItem('auth_token');
+};
+
 export const getEmployees = () => api.get('/employees');
 export const getEmployeesWithPayroll = () => api.get('/employees/with-payroll');
 export const createEmployee = (payload) => api.post('/employees', payload);
@@ -18,3 +29,5 @@ export const deleteSalary = (id) => api.delete(`/salaries/${id}`);
 export const createAttendance = (payload) => api.post('/attendance', payload);
 export const updateAttendance = (id, payload) => api.put(`/attendance/${id}`, payload);
 export const deleteAttendance = (id) => api.delete(`/attendance/${id}`);
+
+export default api;

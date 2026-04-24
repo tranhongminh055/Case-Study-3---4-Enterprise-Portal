@@ -1,7 +1,8 @@
 from datetime import date
 from typing import List, Optional
 import os
-from fastapi import APIRouter, Request
+from fastapi import APIRouter, Request, Depends
+from backend.utils.rbac import require_roles, require_self_or_roles
 from pydantic import BaseModel, EmailStr, validator
 from backend.services import employee_service
 from backend.utils.errors import BadRequestError
@@ -65,13 +66,15 @@ def _serialize_employee(emp):
 
 
 @router.get("", response_model=List[dict])
-def list_employees():
+def list_employees(request: Request, _: dict = Depends(require_roles(["HR Manager", "Employee"]))):
+    # RBAC: Admin, HR Manager, and Employee may list employees (read-only for Employee)
     employees = employee_service.list_employees()
     return [_serialize_employee(emp) for emp in employees]
 
 
 @router.get("/with-payroll", response_model=List[dict])
-def list_employees_with_payroll():
+def list_employees_with_payroll(request: Request, _: dict = Depends(require_roles(["Admin"]))):
+    # RBAC: sensitive combined HR+Payroll data — Admin only (require_roles will allow Admin)
     combined = []
     pairs = employee_service.list_employees_with_payroll()
     for emp, salary in pairs:
@@ -82,12 +85,16 @@ def list_employees_with_payroll():
 
 
 @router.get("/{employee_id}", response_model=dict)
-def get_employee(employee_id: int):
+def get_employee(employee_id: int, request: Request, _: dict = Depends(require_self_or_roles('employee_id', ["HR Manager", "Employee"]))):
+    # Admin, HR Manager, and Employee allowed to view individual employee records (read-only for Employee)
     return serialize_model(employee_service.get_employee(employee_id))
 
 
 @router.post("", status_code=201, response_model=dict)
 def create_employee(payload: EmployeePayload, request: Request):
+    # RBAC: Admin and HR Manager can create employees
+    from backend.controllers.auth import get_current_user
+    user = get_current_user(request, required_roles=["Admin", "HR Manager"])
     simulate_mysql_failure = TEST_FAILURE_HOOKS and request.headers.get("x-simulate-mysql-failure", "false").lower() == "true"
     employee = employee_service.create_employee(payload.dict(), simulate_mysql_failure=simulate_mysql_failure)
     # service may return either a serialized dict (already safe) or a SQLAlchemy model
@@ -98,6 +105,9 @@ def create_employee(payload: EmployeePayload, request: Request):
 
 @router.put("/{employee_id}", response_model=dict)
 def update_employee(employee_id: int, payload: EmployeeUpdatePayload, request: Request):
+    # RBAC: Admin and HR Manager may update employee records
+    from backend.controllers.auth import get_current_user
+    user = get_current_user(request, required_roles=["Admin", "HR Manager"])
     update_data = {k: v for k, v in payload.dict().items() if v is not None}
     if not update_data:
         raise BadRequestError("At least one field must be provided for update")
@@ -109,6 +119,9 @@ def update_employee(employee_id: int, payload: EmployeeUpdatePayload, request: R
 
 
 @router.delete("/{employee_id}", status_code=200)
-def delete_employee(employee_id: int):
+def delete_employee(employee_id: int, request: Request):
+    # RBAC: only Admin may delete
+    from backend.controllers.auth import get_current_user
+    user = get_current_user(request, required_roles=["Admin"])
     employee_service.delete_employee(employee_id)
     return {"message": f"Employee {employee_id} deleted successfully"}

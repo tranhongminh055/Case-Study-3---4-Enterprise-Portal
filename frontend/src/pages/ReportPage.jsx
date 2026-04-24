@@ -1,12 +1,26 @@
 import { useEffect, useState } from 'react';
 import { getReports, getAlerts, getEmployees, updateEmployee } from '../services/api';
+import { getAuth } from '../services/auth';
 
 function ReportPage() {
+  const auth = getAuth();
   const [reports, setReports] = useState([]);
   const [alerts, setAlerts] = useState(null);
   const [employees, setEmployees] = useState([]);
   const [broken, setBroken] = useState([]);
   const [error, setError] = useState(null);
+
+  // Role-based access: Employee role cannot access reports
+  if (auth?.role === 'Employee') {
+    return (
+      <section className="page-section">
+        <h2>Reports & Alerts</h2>
+        <div className="flash-message" style={{ background: '#fee2e2', borderLeftColor: '#dc2626' }}>
+          <strong> Access Denied:</strong> Bạn không được phép xem mục này. Chỉ có Admin và Manager mới có thể truy cập báo cáo.
+        </div>
+      </section>
+    );
+  }
 
   const loadReports = async () => {
     try {
@@ -45,7 +59,7 @@ function ReportPage() {
         <button className="small secondary" onClick={() => {
           if (!reports || reports.length === 0) return;
           const header = ['employee_id','name','email','salary','bonus','deductions','attendance_count','attendance_dates','hire_date'];
-          const rows = reports.map(r => {
+          const rows = reports.map(r => { 
             const dates = (r.attendance || []).map(a => a.date || '').join(';');
             return [r.employee_id, r.name, r.email, r.salary ?? '', r.bonus ?? '', r.deductions ?? '', (r.attendance || []).length, `"${dates.replace(/"/g,'""')}"`, r.hire_date || ''];
           });
@@ -160,3 +174,5 @@ function ReportPage() {
 }
 
 export default ReportPage;
+
+

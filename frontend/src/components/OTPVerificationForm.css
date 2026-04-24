@@ -1,0 +1,54 @@
+.otp-verification-form {
+  max-width: 420px;
+  margin: 0 auto;
+  padding: 1.25rem;
+  background: #ffffff;
+  border: 1px solid #d1d5db;
+  border-radius: 0.75rem;
+}
+
+.otp-verification-form h2 {
+  margin-bottom: 1rem;
+  font-size: 1.25rem;
+  color: #111827;
+}
+
+.otp-verification-form form {
+  display: grid;
+  gap: 1rem;
+}
+
+.otp-verification-form input {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid #cbd5e1;
+  border-radius: 0.5rem;
+  font-size: 1rem;
+}
+
+.otp-verification-form button {
+  width: 100%;
+  padding: 0.75rem;
+  border: none;
+  border-radius: 0.5rem;
+  background: #2563eb;
+  color: #ffffff;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.otp-verification-form button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.otp-verification-form .resend-button {
+  margin-top: 0.75rem;
+  background: #f3f4f6;
+  color: #111827;
+}
+
+.otp-verification-form .error-message {
+  color: #dc2626;
+  font-size: 0.95rem;
+}

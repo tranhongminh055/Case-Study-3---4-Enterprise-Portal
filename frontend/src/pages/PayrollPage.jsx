@@ -1,11 +1,25 @@
 import { useEffect, useState, useRef } from 'react';
 import { getSalaries, getAttendance, createSalary, updateSalary, deleteSalary, createAttendance, updateAttendance, deleteAttendance } from '../services/api';
+import { getAuth } from '../services/auth';
 
 export default function PayrollPage({ selectedEmployeeId = null }) {
+  const auth = getAuth();
   const [salaries, setSalaries] = useState([]);
   const [attendance, setAttendance] = useState([]);
   const [loading, setLoading] = useState(true);
   const highlightRef = useRef(null);
+
+  // Role-based access: Employee role cannot access payroll
+  if (auth?.role === 'Employee') {
+    return (
+      <div className="page-section">
+        <h2>Payroll - Salaries</h2>
+        <div className="flash-message" style={{ background: '#fee2e2', borderLeftColor: '#dc2626' }}>
+          <strong> Access Denied:</strong> Bạn không được phép xem mục này. Chỉ có Admin và Manager mới có thể truy cập bảng lương.
+        </div>
+      </div>
+    );
+  }
 
   // add / edit state
   const [newSalary, setNewSalary] = useState({ employee_id: '', amount: '', effective_date: '' });

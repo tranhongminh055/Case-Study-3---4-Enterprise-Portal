@@ -1,24 +1,47 @@
 import { useEffect, useState } from 'react';
-import { getEmployeesWithPayroll, createEmployee, updateEmployee, deleteEmployee } from '../services/api';
+import { getEmployees, getEmployeesWithPayroll, createEmployee, updateEmployee, deleteEmployee } from '../services/api';
+import { getAuth } from '../services/auth';
+import AuthPanel from '../components/AuthPanel';
 import EmployeeForm from '../components/EmployeeForm';
 import EmployeeList from '../components/EmployeeList';
 
 function EmployeePage() {
+  const auth = getAuth();
   const [employees, setEmployees] = useState([]);
   const [selected, setSelected] = useState(null);
   const [message, setMessage] = useState(null);
 
   const loadEmployees = async () => {
     try {
-      const response = await getEmployeesWithPayroll();
-      setEmployees(response.data);
+      const auth = getAuth();
+      // Admins see combined employee+payroll data, others see basic employee list
+      const response = auth && auth.role === 'Admin' ? await getEmployeesWithPayroll() : await getEmployees();
+      setEmployees(response.data || []);
     } catch (error) {
-      setMessage('Unable to load employees.');
+      setMessage(error?.response?.data?.message || 'Unable to load employees. Please login to view data.');
     }
   };
 
   useEffect(() => {
+    const auth = getAuth();
+    if (!auth || !auth.token) {
+      setMessage('Please login to view employees.');
+      return;
+    }
     loadEmployees();
+
+    function onAuth() {
+      const a = getAuth();
+      if (a && a.token) {
+        setMessage(null);
+        loadEmployees();
+      } else {
+        setEmployees([]);
+        setMessage('Please login to view employees.');
+      }
+    }
+    window.addEventListener('authChanged', onAuth);
+    return () => window.removeEventListener('authChanged', onAuth);
   }, []);
 
   const handleCreate = async (record) => {
@@ -68,18 +91,30 @@ function EmployeePage() {
     }
   };
 
+  // Role-based access: Employee role can only view
+  const isEmployeeRole = auth?.role === 'Employee';
+
   return (
     <section className="page-section">
       <h2>Employee Management</h2>
       {message && <div className="flash-message">{message}</div>}
       <div className="page-grid">
-        <div className="card">
-          <h3>Create / Update Employee</h3>
-          <EmployeeForm employee={selected} onSubmit={selected ? handleUpdate : handleCreate} />
-        </div>
-        <div className="card">
+        {!isEmployeeRole && (
+          <div className="card">
+            <h3>Create / Update Employee</h3>
+            <EmployeeForm employee={selected} onSubmit={selected ? handleUpdate : handleCreate} />
+          </div>
+        )}
+        <div className="card" style={isEmployeeRole ? { gridColumn: '1 / -1' } : {}}>
           <h3>Employees</h3>
-          <EmployeeList employees={employees} onEdit={setSelected} onDelete={handleDelete} />
+          {!getAuth().token ? (
+            <div>
+              <p>Please sign in to view employee data.</p>
+              <AuthPanel />
+            </div>
+          ) : (
+            <EmployeeList employees={employees} onEdit={isEmployeeRole ? null : setSelected} onDelete={isEmployeeRole ? null : handleDelete} />
+          )}
         </div>
       </div>
     </section>

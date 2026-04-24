@@ -27,6 +27,7 @@ function AlertPanel() {
         setOpenType(null);
       }
     }
+    // use capture phase to ensure this runs before any onClick inside the panel
     document.addEventListener('click', onDoc);
     return () => document.removeEventListener('click', onDoc);
   }, []);

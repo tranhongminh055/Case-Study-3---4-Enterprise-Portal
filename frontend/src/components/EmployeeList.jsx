@@ -14,12 +14,17 @@ function EmployeeList({ employees, onEdit, onDelete }) {
         <td>{employee.department_id || 'N/A'}</td>
         <td>{employee.position_id || 'N/A'}</td>
         <td>
-          <button className="small" onClick={() => onEdit(employee)}>
-            Edit
-          </button>
-          <button className="small secondary" onClick={() => onDelete(employee.id)}>
-            Delete
-          </button>
+          {onEdit && (
+            <button className="small" onClick={() => onEdit(employee)}>
+              Edit
+            </button>
+          )}
+          {onDelete && (
+            <button className="small secondary" onClick={() => onDelete(employee.id)}>
+              Delete
+            </button>
+          )}
+          {!onEdit && !onDelete && <span className="muted">Read-only</span>}
         </td>
       </tr>
     );
