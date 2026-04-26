@@ -4,12 +4,18 @@ import { getAuth } from '../services/auth';
 import AuthPanel from '../components/AuthPanel';
 import EmployeeForm from '../components/EmployeeForm';
 import EmployeeList from '../components/EmployeeList';
+import EmployeeDashboard from '../components/EmployeeDashboard';
 
-function EmployeePage() {
+function EmployeePage({ activeTab = 'employees' }) {
   const auth = getAuth();
   const [employees, setEmployees] = useState([]);
   const [selected, setSelected] = useState(null);
   const [message, setMessage] = useState(null);
+  const activeOperation = activeTab === 'create-employee' ? 'create'
+    : activeTab === 'edit-employee' ? 'edit'
+    : activeTab === 'delete-employee' ? 'delete'
+    : activeTab === 'view-employees' ? 'view'
+    : null;
 
   const loadEmployees = async () => {
     try {
@@ -56,6 +62,7 @@ function EmployeePage() {
     try {
       await createEmployee(record);
       await loadEmployees();
+      setSelected(null);
       setMessage('Employee created successfully.');
     } catch (error) {
       setMessage(error?.response?.data?.message || 'Create failed.');
@@ -85,6 +92,7 @@ function EmployeePage() {
     try {
       await deleteEmployee(id);
       await loadEmployees();
+      setSelected(null);
       setMessage('Employee deleted successfully.');
     } catch (error) {
       setMessage(error?.response?.data?.message || 'Delete failed. Employee may have existing salary/dividend links.');
@@ -98,22 +106,85 @@ function EmployeePage() {
     <section className="page-section">
       <h2>Employee Management</h2>
       {message && <div className="flash-message">{message}</div>}
-      <div className="page-grid">
+      <div className={isEmployeeRole ? 'page-grid' : 'page-grid employee-grid'}>
         {!isEmployeeRole && (
-          <div className="card">
-            <h3>Create / Update Employee</h3>
-            <EmployeeForm employee={selected} onSubmit={selected ? handleUpdate : handleCreate} />
-          </div>
+          <aside className="card side-panel">
+            <div className="panel-header">
+              <h3>Employee Operations</h3>
+              <p className="muted">Quick access to employee management features.</p>
+            </div>
+
+            <div className="panel-actions">
+              <button type="button" onClick={() => window.dispatchEvent(new CustomEvent('navigate', { detail: { tab: 'view-employees' } }))}>
+                View employees
+              </button>
+              <button type="button" onClick={() => window.dispatchEvent(new CustomEvent('navigate', { detail: { tab: 'create-employee' } }))}>
+                Create employee
+              </button>
+              <button type="button" onClick={() => window.dispatchEvent(new CustomEvent('navigate', { detail: { tab: 'edit-employee' } }))}>
+                Edit employee
+              </button>
+              <button type="button" onClick={() => window.dispatchEvent(new CustomEvent('navigate', { detail: { tab: 'delete-employee' } }))}>
+                Delete employee
+              </button>
+              <button type="button" onClick={() => window.dispatchEvent(new CustomEvent('navigate', { detail: { tab: 'payroll' } }))}>
+                Payroll
+              </button>
+              <button type="button" onClick={() => window.dispatchEvent(new CustomEvent('navigate', { detail: { tab: 'reports' } }))}>
+                Reports
+              </button>
+            </div>
+          </aside>
         )}
-        <div className="card" style={isEmployeeRole ? { gridColumn: '1 / -1' } : {}}>
-          <h3>Employees</h3>
+        <div className="card employees-card" style={isEmployeeRole ? { gridColumn: '1 / -1' } : {}}>
+          <div className="list-header">
+            <h3>{activeOperation === 'view' ? 'View employees' : activeOperation === 'create' ? 'Create employee' : activeOperation === 'edit' ? 'Edit employee' : activeOperation === 'delete' ? 'Delete employee' : 'Employees'}</h3>
+            {!isEmployeeRole && selected && (
+              <button type="button" className="secondary" onClick={() => setSelected(null)}>
+                Clear selection
+              </button>
+            )}
+          </div>
           {!getAuth().token ? (
             <div>
               <p>Please sign in to view employee data.</p>
               <AuthPanel />
             </div>
+          ) : activeOperation === 'view' ? (
+            <EmployeeList employees={employees} onEdit={null} onDelete={null} />
+          ) : activeOperation === 'create' ? (
+            <EmployeeForm employee={null} onSubmit={handleCreate} />
+          ) : activeOperation === 'edit' ? (
+            selected ? (
+              <EmployeeForm employee={selected} onSubmit={handleUpdate} />
+            ) : (
+              <>
+                <p className="muted">Select an employee from the table below to edit.</p>
+                <EmployeeList employees={employees} onEdit={setSelected} onDelete={null} />
+              </>
+            )
+          ) : activeOperation === 'delete' ? (
+            selected ? (
+              <>
+                <p className="muted">Delete employee {selected.email || selected.id}?</p>
+                <button type="button" className="secondary danger" onClick={() => {
+                  handleDelete(selected.id);
+                  setSelected(null);
+                }}>
+                  Confirm Delete
+                </button>
+              </>
+            ) : (
+              <>
+                <p className="muted">Select an employee from the table below to delete.</p>
+                <EmployeeList employees={employees} onEdit={null} onDelete={(id) => {
+                  const employee = employees.find((emp) => emp.id === id);
+                  setSelected(employee || null);
+                }} />
+              </>
+            )
           ) : (
-            <EmployeeList employees={employees} onEdit={isEmployeeRole ? null : setSelected} onDelete={isEmployeeRole ? null : handleDelete} />
+            <EmployeeDashboard employees={employees} />
           )}
         </div>
       </div>

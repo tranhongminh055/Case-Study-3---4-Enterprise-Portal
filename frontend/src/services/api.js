@@ -7,11 +7,23 @@ const api = axios.create({ baseURL, timeout: 10000 });
 const storedToken = localStorage.getItem('auth_token');
 if (storedToken) api.defaults.headers.common['Authorization'] = `Bearer ${storedToken}`;
 
+// Add interceptor to always include token from localStorage
+api.interceptors.request.use((config) => {
+	const token = localStorage.getItem('auth_token');
+	if (token) {
+		config.headers.Authorization = `Bearer ${token}`;
+	}
+	return config;
+});
+
 export const setAuthToken = (token) => {
-	if (token) api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-	else delete api.defaults.headers.common['Authorization'];
-	if (token) localStorage.setItem('auth_token', token);
-	else localStorage.removeItem('auth_token');
+	if (token) {
+		api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+		localStorage.setItem('auth_token', token);
+	} else {
+		delete api.defaults.headers.common['Authorization'];
+		localStorage.removeItem('auth_token');
+	}
 };
 
 export const getEmployees = () => api.get('/employees');

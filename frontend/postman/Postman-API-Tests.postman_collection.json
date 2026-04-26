@@ -1,0 +1,231 @@
+{
+  "info": {
+    "name": "Case Study 3 API Tests",
+    "description": "Postman collection for backend auth and employee API tests.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "version": {
+      "major": 1,
+      "minor": 0,
+      "patch": 0
+    }
+  },
+  "item": [
+    {
+      "name": "Register Admin User",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"username\": \"admin@example.com\",\n  \"password\": \"Admin123!\",\n  \"phone\": \"+84123456789\",\n  \"role\": \"Admin\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/auth/register",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "auth",
+            "register"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Register status is 201 or 409', function () {",
+              "  pm.expect(pm.response.code).to.be.oneOf([201, 409]);",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Login Admin User",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"username\": \"admin@example.com\",\n  \"password\": \"Admin123!\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/auth/login",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "auth",
+            "login"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Login returns 200', function () {",
+              "  pm.response.to.have.status(200);",
+              "});",
+              "const jsonData = pm.response.json();",
+              "pm.test('Response contains access_token', function () {",
+              "  pm.expect(jsonData).to.have.property('access_token');",
+              "});",
+              "if (jsonData.access_token) {",
+              "  pm.environment.set('accessToken', jsonData.access_token);",
+              "}"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Get Employees List",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{accessToken}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/employees",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "employees"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Get employees returns 200', function () {",
+              "  pm.response.to.have.status(200);",
+              "});",
+              "const jsonData = pm.response.json();",
+              "pm.test('Response has data array', function () {",
+              "  pm.expect(jsonData).to.have.property('data');",
+              "  pm.expect(jsonData.data).to.be.an('array');",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Create Employee",
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "exec": [
+              "if (!pm.environment.get('employeeEmail')) {",
+              "  pm.environment.set('employeeEmail', 'employee-' + Date.now() + '@example.com');",
+              "}"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Create employee returns 201', function () {",
+              "  pm.response.to.have.status(201);",
+              "});",
+              "const jsonData = pm.response.json();",
+              "pm.test('Response contains id', function () {",
+              "  pm.expect(jsonData).to.have.property('id');",
+              "});",
+              "if (jsonData.id) {",
+              "  pm.environment.set('employeeId', jsonData.id);",
+              "}"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{accessToken}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"full_name\": \"Postman Employee\",\n  \"email\": \"{{employeeEmail}}\",\n  \"phone\": \"+84123456789\",\n  \"address\": \"123 Postman Street\",\n  \"department_id\": 1,\n  \"position_id\": 1,\n  \"salary\": 50000\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/employees",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "employees"
+          ]
+        }
+      }
+    },
+    {
+      "name": "Verify Employee Created",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{accessToken}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/employees",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "employees"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Employees endpoint returns array', function () {",
+              "  pm.response.to.have.status(200);",
+              "});",
+              "const jsonData = pm.response.json();",
+              "pm.test('New employee email exists in list', function () {",
+              "  const emails = jsonData.data.map(emp => emp.email);",
+              "  pm.expect(emails).to.include(pm.environment.get('employeeEmail'));",
+              "});"
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

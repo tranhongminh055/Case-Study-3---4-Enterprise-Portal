@@ -18,14 +18,14 @@ def abnormal_salary_alerts(mysql_session, threshold=200000):
     return mysql_session.query(Salary).filter(Salary.amount > threshold).all()
 
 
-def excessive_leave_alerts(mysql_session, threshold_hours=40):
+def excessive_leave_alerts(mysql_session, threshold_days=5):
     grouped = {}
     attendance_rows = mysql_session.query(Attendance).all()
     for row in attendance_rows:
         grouped.setdefault(row.employee_id, 0)
-        grouped[row.employee_id] += row.leave_hours or 0
+        grouped[row.employee_id] += row.leave_days or 0
     return [
-        {"employee_id": employee_id, "leave_hours": total}
+        {"employee_id": employee_id, "leave_days": total}
         for employee_id, total in grouped.items()
-        if total >= threshold_hours
+        if total >= threshold_days
     ]

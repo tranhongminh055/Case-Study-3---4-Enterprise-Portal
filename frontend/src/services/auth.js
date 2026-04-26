@@ -1,37 +1,4 @@
 import api, { setAuthToken } from './api';
-import { initializeApp } from 'firebase/app';
-import { getAuth as getFirebaseAuth, signInWithPhoneNumber, RecaptchaVerifier } from 'firebase/auth';
-
-const firebaseConfig = {
-  apiKey: "AIzaSyAzbn-dR1HbBDkQpfykQh97JLJET5IQF8o",
-  authDomain: "enterprise-portal-ac043.firebaseapp.com",
-  projectId: "enterprise-portal-ac043",
-  storageBucket: "enterprise-portal-ac043.appspot.com",
-  messagingSenderId: "655304350864",
-  appId: "1:655304350864:web:8766ba2f5586d264368c15",
-  measurementId: "G-ETVMDTRE42",
-};
-
-const app = initializeApp(firebaseConfig);
-const firebaseAuth = getFirebaseAuth(app);
-
-const getRecaptchaVerifier = (containerId) => {
-  if (typeof window === 'undefined') return null;
-  if (!window.recaptchaVerifier) {
-    window.recaptchaVerifier = new RecaptchaVerifier(containerId, {
-      size: 'invisible',
-      callback: (response) => {
-        console.log('Recaptcha verified:', response);
-      },
-      'expired-callback': () => {
-        if (window.recaptchaVerifier) {
-          window.recaptchaVerifier.clear();
-        }
-      },
-    }, firebaseAuth);
-  }
-  return window.recaptchaVerifier;
-};
 
 export const login = async (username, password) => {
   const resp = await api.post('/auth/login', { username, password });
@@ -83,16 +50,13 @@ const normalizePhoneNumber = (phoneNumber) => {
 };
 
 export const sendOTP = (phoneNumber, recaptchaContainerId) => {
-  const normalizedPhone = normalizePhoneNumber(phoneNumber);
-  const recaptchaVerifier = getRecaptchaVerifier(recaptchaContainerId);
-  if (!recaptchaVerifier) {
-    throw new Error('Unable to initialize reCAPTCHA verification. Please refresh and try again.');
-  }
-  return signInWithPhoneNumber(firebaseAuth, normalizedPhone, recaptchaVerifier);
+  // Dummy function - OTP disabled
+  return Promise.resolve({ verificationId: 'dummy' });
 };
 
 export const verifyOTP = (confirmationResult, otpCode) => {
-  return confirmationResult.confirm(otpCode);
+  // Dummy function - OTP disabled
+  return Promise.resolve({ valid: true, error: null });
 };
 
-export default { login, register, logout, getAuth, completeLogin, sendOTP, verifyOTP };
+export default { login, register, logout, getAuth, completeLogin };

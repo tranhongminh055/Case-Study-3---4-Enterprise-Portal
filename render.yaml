@@ -1,7 +1,7 @@
 services:
   - type: web
     name: enterprise-api
-    runtime: python3
+    runtime: python
     buildCommand: pip install -r backend/requirements.txt
     startCommand: uvicorn backend.main:app --host 0.0.0.0 --port $PORT
     envVars:
@@ -12,7 +12,7 @@ services:
       - key: SQLSERVER_SERVER
         value: your-sqlserver-instance
       - key: USE_TRUSTED_CONNECTION
-        value: true
+        value: "true"
       - key: MYSQL_HOST
         value: your-mysql-host
       - key: MYSQL_PORT
@@ -24,4 +24,4 @@ services:
       - key: MYSQL_PASSWORD
         value: your-mysql-password
       - key: ENABLE_TEST_FAILURE_HOOKS
-        value: false
+        value: "false"

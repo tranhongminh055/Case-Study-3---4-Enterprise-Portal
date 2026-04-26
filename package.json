@@ -8,7 +8,12 @@
     "frontend:build": "cd frontend && npm run build",
     "cypress:generate": "node cypress/auto-test-generator.js",
     "cypress:run": "npm run cypress:generate && npx cypress run",
-    "cypress:open": "npm run cypress:generate && npx cypress open"
+    "cypress:open": "npm run cypress:generate && npx cypress open",
+    "test": "node run_all_tests.js",
+    "test:generate": "node frontend/cypress/test-suite/generate_test.js",
+    "test:headless": "cd frontend && npx cypress run --spec \"cypress/e2e/comprehensive_test.cy.js\"",
+    "backend:start": "cd backend && uvicorn main:app --reload --host 0.0.0.0 --port 8000",
+    "setup": "cd backend && pip install -r requirements.txt && cd ../frontend && npm install"
   },
   "devDependencies": {
     "cypress": "^12.17.4"

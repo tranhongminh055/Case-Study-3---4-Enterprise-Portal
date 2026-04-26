@@ -35,7 +35,7 @@ function Dashboard({ onLogout }) {
           <span className="brand-sub">HR • Payroll • Reporting</span>
         </div>
         <nav>
-          <button onClick={() => setActiveTab('employees')} className={activeTab === 'employees' ? 'active' : ''}>
+          <button onClick={() => setActiveTab('employees')} className={activeTab.startsWith('employees') || activeTab.startsWith('create-employee') || activeTab.startsWith('edit-employee') || activeTab.startsWith('delete-employee') || activeTab === 'view-employees' ? 'active' : ''}>
             Employees
           </button>
           {!isEmployeeRole && (
@@ -54,7 +54,9 @@ function Dashboard({ onLogout }) {
 
       <main>
         <AlertPanel />
-        {activeTab === 'employees' && <EmployeePage />}
+        {(activeTab === 'employees' || activeTab === 'create-employee' || activeTab === 'edit-employee' || activeTab === 'delete-employee' || activeTab === 'view-employees') && (
+          <EmployeePage activeTab={activeTab} />
+        )}
         {activeTab === 'reports' && !isEmployeeRole && <ReportPage />}
         {activeTab === 'payroll' && !isEmployeeRole && <PayrollPage selectedEmployeeId={selectedEmployeeId} />}
       </main>

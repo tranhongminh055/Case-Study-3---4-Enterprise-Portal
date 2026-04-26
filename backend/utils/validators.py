@@ -70,6 +70,7 @@ def validate_username(username: str) -> Tuple[bool, str]:
     Requirements:
     - 3-50 characters
     - Only letters, numbers, dots, hyphens, underscores
+    - OR valid email format (username@domain.com)
     
     Returns: (is_valid, error_message)
     """
@@ -84,9 +85,12 @@ def validate_username(username: str) -> Tuple[bool, str]:
     if len(username) > 50:
         return False, "Username must not exceed 50 characters"
     
-    pattern = r'^[a-zA-Z0-9._-]+$'
-    if not re.match(pattern, username):
-        return False, "Username can only contain letters, numbers, dots, hyphens, and underscores"
+    # Allow either username format OR email format
+    username_pattern = r'^[a-zA-Z0-9._-]+$'
+    email_pattern = r'^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
+    
+    if not (re.match(username_pattern, username) or re.match(email_pattern, username)):
+        return False, "Username can only contain letters, numbers, dots, hyphens, and underscores, or use email format"
     
     return True, ""
 
